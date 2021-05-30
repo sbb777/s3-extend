@@ -171,11 +171,11 @@ class S3A:
         if sys.platform.startswith('win32'):
             return subprocess.Popen(['backplane'],
                                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP |
-                                                  subprocess.CREATE_NO_WINDOW, shell=True)
+                                                  subprocess.CREATE_NO_WINDOW)
         else:
             return subprocess.Popen(['backplane'],
                                     stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    stdout=subprocess.PIPE, shell=True)
+                                    stdout=subprocess.PIPE)
 
     def start_wsgw(self):
         """
@@ -185,11 +185,11 @@ class S3A:
             return subprocess.Popen(['wsgw'],
                                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
                                                   |
-                                                  subprocess.CREATE_NO_WINDOW, shell=True)
+                                                  subprocess.CREATE_NO_WINDOW)
         else:
             return subprocess.Popen(['wsgw'],
                                     stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    stdout=subprocess.PIPE, shell=True)
+                                    stdout=subprocess.PIPE)
 
     def start_ardgw(self):
         """
@@ -206,11 +206,11 @@ class S3A:
 
         if sys.platform.startswith('win32'):
             return subprocess.Popen(hwgw_start,
-                                    creationflags=subprocess.CREATE_NO_WINDOW, shell=True)
+                                    creationflags=subprocess.CREATE_NO_WINDOW)
         else:
             return subprocess.Popen(hwgw_start,
                                     stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    stdout=subprocess.PIPE, shell=True)
+                                    stdout=subprocess.PIPE)
 
 
 def signal_handler(sig, frame):
