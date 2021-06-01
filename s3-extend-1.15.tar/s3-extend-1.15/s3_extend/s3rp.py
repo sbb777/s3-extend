@@ -11,11 +11,9 @@
  General Public License for more details.
 
  You should have received a copy of the GNU AFFERO GENERAL PUBLIC LICENSE
-
  along with this library; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
-import argparse
 import atexit
 import signal
 import subprocess
@@ -28,29 +26,24 @@ import psutil
 # import webbrowser
 
 
-class S3A:
+class S3RP:
     """
-    This class starts the Banyan server to support Scratch 3 OneGPIO
-    for the Arduino
+    This class starts the Banyan server to support the Scratch 3 OneGPIO Raspberry Pi
+    extension for local mode. That means the browser and components are all executing
+    on a single RPi.
 
-    It will start the backplane, arduino gateway and websocket gateway.
+    It will start the backplane, Raspberry Pi gateway and websocket gateway.
     """
 
-    def __init__(self, com_port=None, arduino_instance_id=None):
+    def __init__(self):
+        """
+        Prepare for launching the rpi extension
         """
 
-        :param com_port:
-        :param arduino_instance_id:
-        """
-
-        self.com_port = com_port
-
-        # psutil process objects
         self.proc_bp = None
         self.proc_awg = None
         self.proc_hwg = None
 
-        atexit.register(self.killall)
         self.skip_backplane = False
 
         # start backplane
@@ -69,22 +62,17 @@ class S3A:
             print('WebSocket Gateway start failed - exiting')
             sys.exit(0)
 
-        # start arduino gateway
-        self.proc_hwg = self.start_ardgw()
+        # start rpi gateway
+        self.proc_hwg = self.start_rp_gw()
         if self.proc_hwg:
-            print('Arduino Gateway started.')
-            seconds = 5
-            while seconds >= 0:
-                print('\rPlease wait ' + str(seconds) + ' seconds for Arduino to initialize...', end='')
-                time.sleep(1)
-                seconds -= 1
-            print()
-            print('Arduino is initialized.')
+            print('RPi Pico Gateway started ')
             print('To exit this program, press Control-c')
+
         else:
-            print('Arduino Gateway start failed - exiting')
+            print('RPi Gateway start failed - exiting')
             sys.exit(0)
 
+        atexit.register(self.killall)
         # webbrowser.open('https://mryslab.github.io/s3onegpio/', new=1)
 
         while True:
@@ -100,7 +88,7 @@ class S3A:
                     self.killall()
                 if self.proc_hwg.poll() is not None:
                     self.proc_hwg = None
-                    print('Arduino Gateway exited. Is your Arduino plugged in?')
+                    print('RPi Pico Gateway exited.')
                     self.killall()
 
                 # allow some time between polls
@@ -112,7 +100,7 @@ class S3A:
         """
         Kill all running processes
         """
-        # prevent loop from running for a clean exit
+
         # check for missing processes
         if self.proc_bp:
             try:
@@ -171,46 +159,36 @@ class S3A:
         if sys.platform.startswith('win32'):
             return subprocess.Popen(['backplane'],
                                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP |
-                                                  subprocess.CREATE_NO_WINDOW, shell=True)
+                                                  subprocess.CREATE_NO_WINDOW)
         else:
             return subprocess.Popen(['backplane'],
                                     stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    stdout=subprocess.PIPE, shell=True)
+                                    stdout=subprocess.PIPE)
 
     def start_wsgw(self):
         """
         Start the websocket gateway
         """
         if sys.platform.startswith('win32'):
-            return subprocess.Popen(['wsgw'],
+            return subprocess.Popen(['wsgw', '-i', '9006'],
                                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
                                                   |
-                                                  subprocess.CREATE_NO_WINDOW, shell=True)
+                                                  subprocess.CREATE_NO_WINDOW)
         else:
-            return subprocess.Popen(['wsgw'],
+            return subprocess.Popen(['wsgw', '-i', '9006'],
                                     stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    stdout=subprocess.PIPE, shell=True)
+                                    stdout=subprocess.PIPE)
 
-    def start_ardgw(self):
+    def start_rp_gw(self):
         """
-        Start the arduino gateway
+        Start the rpi pico gateway
         """
         if sys.platform.startswith('win32'):
-            hwgw_start = ['ardgw']
+            return subprocess.Popen(['rpgw'], creationflags=subprocess.CREATE_NEW_PROCESS_GROUP |
+                                                             subprocess.CREATE_NO_WINDOW)
         else:
-            hwgw_start = ['ardgw']
-
-        if self.com_port:
-            hwgw_start.append('-c')
-            hwgw_start.append(self.com_port)
-
-        if sys.platform.startswith('win32'):
-            return subprocess.Popen(hwgw_start,
-                                    creationflags=subprocess.CREATE_NO_WINDOW, shell=True)
-        else:
-            return subprocess.Popen(hwgw_start,
-                                    stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    stdout=subprocess.PIPE, shell=True)
+            return subprocess.Popen(['rpgw'], stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    stdout=subprocess.PIPE)
 
 
 def signal_handler(sig, frame):
@@ -218,28 +196,12 @@ def signal_handler(sig, frame):
     raise KeyboardInterrupt
 
 
-def s3ax():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-c", dest="com_port", default="None",
-                        help="Use this COM port instead of auto discovery")
-    parser.add_argument("-i", dest="arduino_instance_id", default="None",
-                        help="Set an Arduino Instance ID and match it in FirmataExpress")
-    args = parser.parse_args()
-
-    if args.com_port == "None":
-        com_port = None
-    else:
-        com_port = args.com_port
-
-    if args.arduino_instance_id == "None":
-        arduino_instance_id = None
-    else:
-        arduino_instance_id = int(args.arduino_instance_id)
-
-    if com_port and arduino_instance_id:
-        raise RuntimeError('Both com_port arduino_instance_id were set. Only one is allowed')
-
-    S3A(com_port=com_port, arduino_instance_id=args.arduino_instance_id)
+def s3rpx():
+    """
+    Start the extension
+    :return:
+    """
+    S3RP()
 
 
 # listen for SIGINT
@@ -248,4 +210,4 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 if __name__ == '__main__':
     # replace with name of function you defined above
-    s3ax()
+    s3rpx()

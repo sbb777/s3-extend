@@ -119,7 +119,7 @@ class S3A:
                 if sys.platform.startswith('win32'):
                     subprocess.run(['taskkill', '/F', '/t', '/PID', str(self.proc_bp.pid)],
                                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP |
-                                                 subprocess.CREATE_NO_WINDOW
+                                                 subprocess.CREATE_NO_WINDOW, shell=True
                                    )
                 else:
                     self.proc_bp.kill()
@@ -131,7 +131,7 @@ class S3A:
                 if sys.platform.startswith('win32'):
                     subprocess.run(['taskkill', '/F', '/t', '/pid', str(self.proc_awg.pid)],
                                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP |
-                                                 subprocess.CREATE_NO_WINDOW
+                                                 subprocess.CREATE_NO_WINDOW, shell=True
                                    )
                 else:
                     self.proc_awg.kill()
@@ -143,7 +143,7 @@ class S3A:
                 if sys.platform.startswith('win32'):
                     subprocess.run(['taskkill', '/F', '/t', '/PID', str(self.proc_hwg.pid)],
                                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP |
-                                                 subprocess.CREATE_NO_WINDOW
+                                                 subprocess.CREATE_NO_WINDOW, shell=True
                                    )
                 else:
                     self.proc_hwg.kill()
@@ -171,7 +171,7 @@ class S3A:
         if sys.platform.startswith('win32'):
             return subprocess.Popen(['backplane'],
                                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP |
-                                                  subprocess.CREATE_NO_WINDOW, shell=True)
+                                                  subprocess.CREATE_NO_WINDOW, shell=True) #, shell=True
         else:
             return subprocess.Popen(['backplane'],
                                     stdin=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -185,11 +185,11 @@ class S3A:
             return subprocess.Popen(['wsgw'],
                                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
                                                   |
-                                                  subprocess.CREATE_NO_WINDOW, shell=True)
+                                                  subprocess.CREATE_NO_WINDOW)
         else:
             return subprocess.Popen(['wsgw'],
                                     stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    stdout=subprocess.PIPE, shell=True)
+                                    stdout=subprocess.PIPE)
 
     def start_ardgw(self):
         """
@@ -206,11 +206,11 @@ class S3A:
 
         if sys.platform.startswith('win32'):
             return subprocess.Popen(hwgw_start,
-                                    creationflags=subprocess.CREATE_NO_WINDOW, shell=True)
+                                    creationflags=subprocess.CREATE_NO_WINDOW)
         else:
             return subprocess.Popen(hwgw_start,
                                     stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    stdout=subprocess.PIPE, shell=True)
+                                    stdout=subprocess.PIPE)
 
 
 def signal_handler(sig, frame):
