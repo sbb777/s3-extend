@@ -160,7 +160,7 @@ class S3A:
         # check to see if the backplane is already running
         try:
             for proc in psutil.process_iter(attrs=['pid', 'name']):
-                if 'backplane' in proc.info['name']:
+                if 'base' in proc.info['name']:
                     self.skip_backplane = True
                     # its running - return its pid
                     return proc
@@ -169,11 +169,11 @@ class S3A:
 
         # backplane is not running, so start one
         if sys.platform.startswith('win32'):
-            return subprocess.Popen(['backplane'],
+            return subprocess.Popen(['base'],
                                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP |
                                                   subprocess.CREATE_NO_WINDOW)
         else:
-            return subprocess.Popen(['backplane'],
+            return subprocess.Popen(['base'],
                                     stdin=subprocess.PIPE, stderr=subprocess.PIPE,
                                     stdout=subprocess.PIPE)
 
@@ -182,12 +182,12 @@ class S3A:
         Start the websocket gateway
         """
         if sys.platform.startswith('win32'):
-            return subprocess.Popen(['wsgw'],
+            return subprocess.Popen(['wg'],
                                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
                                                   |
                                                   subprocess.CREATE_NO_WINDOW)
         else:
-            return subprocess.Popen(['wsgw'],
+            return subprocess.Popen(['wg'],
                                     stdin=subprocess.PIPE, stderr=subprocess.PIPE,
                                     stdout=subprocess.PIPE)
 
@@ -196,9 +196,9 @@ class S3A:
         Start the arduino gateway
         """
         if sys.platform.startswith('win32'):
-            hwgw_start = ['ardgw']
+            hwgw_start = ['ag']
         else:
-            hwgw_start = ['ardgw']
+            hwgw_start = ['ag']
 
         if self.com_port:
             hwgw_start.append('-c')
