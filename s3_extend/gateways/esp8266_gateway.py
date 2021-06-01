@@ -128,6 +128,7 @@ class Esp8266Gateway(GatewayBaseAIO):
         :param topic: message topic
         :param payload: {"command": "digital_write", "pin": “PIN”, "value": “VALUE”}
         """
+        print("야 내가 넣은 거야")
 
         await self.esp.digital_write(payload["pin"], payload['value'])
 
